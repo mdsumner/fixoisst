@@ -49,13 +49,17 @@ As of this writing, {stars} doesn't get the projection from the original file (b
 
 Here we are missing the CRS, but with our additions in the second summary it correctly has the longitude/latitude projection stuff. Same goes for four variables 'sst', 'anom', 'err', and 'ice' which are 4D variables on a lonlat regular grid (with degenerate Z and time axes). 
 
+
+(we hack-ily dump the Metadata chunk)
+
+
 ```{r}
-system("gdalinfo NETCDF:\"oisst-avhrr-v02r01.20220218.nc\":sst", intern = TRUE)
+system("gdalinfo NETCDF:\"oisst-avhrr-v02r01.20220218.nc\":sst", intern = TRUE)[-c(6:67)]
 ```
 
 
 ```{r}
-system("gdalinfo NETCDF:\"file.nc\":sst",intern = TRUE)
+system("gdalinfo NETCDF:\"file.nc\":sst",intern = TRUE)[-c(24:91)]
 ```
 
 ## Original NetCDF 
@@ -63,15 +67,15 @@ system("gdalinfo NETCDF:\"file.nc\":sst",intern = TRUE)
 Here's the NetCDF dump of the original file (which I used to email the maintainers). 
 
 ```{r}
-system("ncdump -h oisst-avhrr-v02r01.20220218.nc")
+writeLines(system("ncdump -h oisst-avhrr-v02r01.20220218.nc", intern = TRUE))
 ```
 
 ## Modified NetCDF
 
-Here's the NetCDF dump of the modified file. 
+Here's the NetCDF dump of the modified file, with the modified section grep'ed out
 
 ```{r}
-system("ncdump -h file.nc")
+writeLines(system("ncdump -h file.nc | grep \"short sst\" -A 45", intern = TRUE))
 ```
 
 ---
