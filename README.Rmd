@@ -1,0 +1,81 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# fixoisst
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of fixoisst is to see what's required to add the grid_mapping scheme to OISST files. 
+
+Here's an email sent to the maintainers 2022-03-14
+
+
+> the OISST files have no "grid_mapping" variable, so downstream tools like GDAL miss auto-determining the coordinate system used by the sst, ice, anom, and err variables. 
+>
+>I obtained an example file
+>
+>https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/202202/oisst-avhrr-v02r01.20220218.nc
+>
+>and created a new "file.nc" that adds the scalar 'crs' var with attributes, and this is pointed to by new attributes 'coordinates' and 'grid_mapping' from the 4D variables that use 'lon' and 'lat'. 
+>
+>I hope that future updates of the OISST files can include the 'grid_mapping' scheme. 
+>
+>Thank you. I've attached my example files and R script for your reference. 
+
+
+## Implications for R 
+
+We wouldn't need to assign the projection this way with VRT or raster or whatever. 
+
+```{r}
+vapour::vapour_raster_info("NETCDF:\"oisst-avhrr-v02r01.20220218.nc\":sst")[c("projection", "projstring")]
+vapour::vapour_raster_info("NETCDF:\"file.nc\":sst")[c("projection", "projstring")]
+```
+
+As of this writing, {stars} doesn't get the projection from the original file (because GDAL doesn't), but {terra} and {raster} both do because of different heuristics (in terra) and different read facilities (in raster). I won't compare those other packages here because they change too and they aren't the point of this story (though this does have implications, for this one data set ...). 
+
+## Comparison for GDAL 
+
+Here we are missing the CRS, but with our additions in the second summary it correctly has the longitude/latitude projection stuff. Same goes for four variables 'sst', 'anom', 'err', and 'ice' which are 4D variables on a lonlat regular grid (with degenerate Z and time axes). 
+
+```{r}
+system("gdalinfo NETCDF:\"oisst-avhrr-v02r01.20220218.nc\":sst", intern = TRUE)
+```
+
+
+```{r}
+system("gdalinfo NETCDF:\"file.nc\":sst",intern = TRUE)
+```
+
+## Original NetCDF 
+
+Here's the NetCDF dump of the original file (which I used to email the maintainers). 
+
+```{r}
+system("ncdump -h oisst-avhrr-v02r01.20220218.nc")
+```
+
+## Modified NetCDF
+
+Here's the NetCDF dump of the modified file. 
+
+```{r}
+system("ncdump -h file.nc")
+```
+
+---
+
+## Code of Conduct
+  
+Please note that the fixoisst project is released with a [Contributor Code of Conduct](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
