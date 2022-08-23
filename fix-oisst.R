@@ -18,7 +18,7 @@ att.put.nc(nc, crsvar, "semi_major_axis", "NC_FLOAT", 6378136.3)
 
 library(dplyr)
 vars <- ncmeta::nc_vars(nc) %>% dplyr::filter(ndims == 4) %>% pull(name)
-for (varname in vars[-1]) {
+for (varname in vars) {
   #{varname}:coordinates = "longitude latitude" ;
   #{varname}:grid_mapping = "{crsvar}" ;
   att.put.nc(nc, varname, "coordinates", "NC_STRING", "longitude latitude")
@@ -26,3 +26,16 @@ for (varname in vars[-1]) {
 }
 close.nc(nc)
 
+for (i in seq_along(vars)) {
+  print(substr(vapour::vapour_raster_info(f, sds = i)$projection, 1, 50))
+  cat("\n")
+}
+
+# [1] "GEOGCRS[\"unknown\",\n    DATUM[\"unnamed\",\n        EL"
+#
+# [1] "GEOGCRS[\"unknown\",\n    DATUM[\"unnamed\",\n        EL"
+#
+# [1] "GEOGCRS[\"unknown\",\n    DATUM[\"unnamed\",\n        EL"
+#
+# [1] "GEOGCRS[\"unknown\",\n    DATUM[\"unnamed\",\n        EL"
+#
